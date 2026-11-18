@@ -3,18 +3,23 @@
 %  by W. Wojtak et al.
 
 clear; clc
-%% Spatial coordinates
-L = 4*pi; N = 2^12; dx = 2*L/N; xDim = (-L+(0:N-1)*dx); 
+% spatial stepping
+L = 4*pi; % domain length
+N = 2^12; % number of spatial points
+dx = 2*L/N; % spatial step
+xDim = (-L+(0:N-1)*dx); % spatial vector
 
-%% Temporal coordinates
-dt = .01; tspan = 0:dt:50; M = numel(tspan);
+% timestepping
+dt = .01; 
+tspan = 0:dt:50; % create time vector to 50 timesteps
+M = numel(tspan); % length of time vector
 
-%% Functions
+% define inline functions
 kernel = @(x,A_ex,s_ex,A_in,s_in,g_i) A_ex* exp(-0.5 * (x).^2 / s_ex^2) - A_in * exp(-0.5 * (x).^2 / s_in^2) - g_i; % mexican hat kernel
-gauss = @(x,mu,sigma) exp(-0.5*(x-mu).^2/sigma^2);
-sigmoid = @(x,beta,theta)  1./ (1 + exp(-beta*(x-theta)));
+gauss = @(x,mu,sigma) exp(-0.5*(x-mu).^2/sigma^2); % generic gaussian
+sigmoid = @(x,beta,theta)  1./ (1 + exp(-beta*(x-theta))); % sigmoid
 
-%% Paramaters
+% params
 p(1) = 1000;   % beta
 p(2) = 2;      % A_ex   
 p(3) = 1.25;   % s_ex   
@@ -25,18 +30,20 @@ p(7) = 0.5;    % theta
 
 beta = p(1); theta = p(7); tau = 1;
 
-%% Initial data
+% initial conditions
 K = 0.0;
-u_field =  -theta * ones(1, N); v_field = K - u_field;
-history_u = zeros(M, N);
-history_v = zeros(M, N);
+u_field =  -theta * ones(1, N); % u initial condition
+v_field = K - u_field; % v initial condition
+history_u = zeros(M, N); % u history array
+history_v = zeros(M, N); % v history arary
 
-%% Connectivity function
-w = kernel(xDim,p(2),p(3),p(4),p(5),p(6));
+% connectivity function
+w = kernel(xDim,p(2),p(3),p(4),p(5),p(6)); % construct mexican hat kernel using specified 
 wHat = fft(w);
 
 %% Input
-A_I = 1; sigma_I = 1;
+A_I = 1; 
+sigma_I = 1;
 Input = zeros(M, N);
 Input_pattern = A_I * gauss(xDim, 0, sigma_I);
 Input(1/dt:2/dt, :) = repmat(Input_pattern,1+(1/dt),1);
