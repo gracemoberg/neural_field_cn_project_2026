@@ -1,7 +1,7 @@
 function par = default_par()
     % spatial
-    par.Ldom = 50; % length of domain
-    par.N = 128; % number of points
+    par.Ldom = 100; % length of domain
+    par.N = 256; % number of points
 
     % time (ms)
     par.dt = 0.1; % timestep spacing
@@ -26,5 +26,5 @@ function par = default_par()
     par.sig_ratio = 2.5; % sig_i = sig_ratio*sig_e
 
     % misc
-    par.verbose = false;   % print kernel sanity checks
+    par.verbose = true;   % print kernel sanity checks
 end
