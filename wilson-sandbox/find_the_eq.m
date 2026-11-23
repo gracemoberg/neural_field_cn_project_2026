@@ -1,0 +1,83 @@
+par = default_par();
+dx = par.Ldom/par.N; % spatial domain 
+x = (0:par.N-1)*dx - par.Ldom/2;
+
+tau_e = par.tau_e;  tau_i = par.tau_i;
+a_ee = par.a_ee;  a_ei = par.a_ei;  a_ie = par.a_ie;  a_ii = par.a_ii;
+th_e = par.th_e;  th_i = par.th_i;
+sig_e = par.sig_e;
+sig_i = par.sig_ratio*par.sig_e;
+
+% numerically solving for equilibrium points in our system
+% old simple code for finding eq in a 3x3 system - adapt to finding 
+
+
+% rootfind on the nonlinear system
+% copy paste dump: need equations, kernel, convolution stuff
+F = @(u) 1./(1+exp(-u)); % sigmoid F
+Kern = @(x,s) exp(-x.^2/s^2)/(s*sqrt(pi));  % kernel
+
+% kernels - same each time so only need to compute once
+% use ifftshift to move the peak of the kernel from index N/2+1 to index 1
+% compute fft to transform kernel into Fourier space
+Ke_hat = fft(ifftshift(Kern(x,sig_e)));
+Ki_hat = fft(ifftshift(Kern(x,sig_i)));
+
+KeUe = dx*real(ifft(fft(U(1)).*Ke_hat));
+KiUi = dx*real(ifft(fft(U(2)).*Ki_hat));
+
+
+        
+%Ue = Ue + dt/tau_e*(-Ue + F(a_ee*KeUe - a_ie*KiUi - th_e + Ie));
+%Ui = Ui + dt/tau_i*(-Ui + F(a_ei*KeUe - a_ii*KiUi - th_i + Ii));
+
+% the jawn to be rootfound 
+% U = [U_e, U_i];
+rhs_syst = @(U) [
+   -U(1) + F(a_ee*dx*real(ifft(fft(U(1)).*Ke_hat)) - a_ie*dx*real(ifft(fft(U(2)).*Ki_hat)) - th_e); 
+   -U(2) + F(a_ei*dx*real(ifft(fft(U(1)).*Ke_hat)) - a_ii*dx*real(ifft(fft(U(2)).*Ki_hat))- th_i);
+   ];
+
+%Ue0 = rand(1,par.N);  
+%Ui0 = rand(1,par.N); 
+Ue0 = 0.1*ones(1,N)' + 1*exp(-x.^2/4);
+Ui0 = 0.1*ones(1,N)' + 1*exp(-x.^2/4);
+U0 = [Ue0; Ui0]; %% need a LARGE initial guess to 
+% target equilibrium away from 0 and/or miniscule negative 
+% (physically illogical) densities.
+% needs to be much smaller for this system, note most patterns are looking
+% at Ue/Ui vals in the 0.5 range.
+
+[eqpt, f] = fsolve(rhs_syst, U0);
+
+%we have the eq point!
+Ue = eqpt(1);
+Ui = eqpt(2);
+
+% currently does not work with convolution left in current form
+% alternative - a spatially homogeneous system would just be the same as
+% multiplying Ue, Ui by int
+
+% try reframing with either analytical solution of Kernels or
+% approximations of integrals, spatially homogeneous case
+Ke_homog = 1/2*(erf(x(end)/sig_e) + erf(-x(1)/sig_e)); % spatially  homog, eq - kernels evaluate to constants (basically 1)
+Ki_homog = 1/2*(erf(x(end)/sig_i) + erf(-x(1)/sig_i));
+% 
+% rhs_eq_syst = @(U) [
+%     -U(1)/tau_e + F(a_ee*Ke_homog*U(1) - a_ie*Ki_homog*U(2)-th_e)/tau_e; 
+%     -U(2)/tau_i + F(a_ei*Ke_homog*U(1) - a_ii*Ki_homog*U(2)-th_i)/tau_i;
+%     ];
+% 
+%  U0 = [0.5; 0.25]; %% need a LARGE initial guess to 
+% target equilibrium away from 0 and/or miniscule negative 
+% (physically illogical) densities.
+% needs to be much smaller for this system, note most patterns are looking
+% at Ue/Ui vals in the 0.5 range.
+% 
+% [eqpt, f] = fsolve(rhs_eq_syst, U0);
+% 
+% % we have the eq point!
+% Ue = eqpt(1);
+% Ui = eqpt(2);
+
+fprintf('eq point: (%.4f, %.4f), found near (%.4f, %.4f)\n', Ue, Ui, U0(1), U0(2))
