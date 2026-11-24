@@ -4,11 +4,11 @@ clear; clc;
 % access default parameters unless otherwise specified
 par = default_par();
 par.tEnd = 6000; % final time
-t_plot = 5500; % set portion of run to plot
+t_plot = 5000; % set portion of run to plot
 
 % forcing parameters
 A = 0.8; % forcing amplitude
-T = 55; % forcing function period
+T = 42; % forcing function period
 q = 0; % feed-forward inhibition fraction (g_i = q*A in the paper)
 
 H = @(y) double(y>0); % step function
@@ -34,9 +34,9 @@ rng(7);
 % other options:
 Ue0 = rand(1,par.N);  
 Ui0 = rand(1,par.N); % large random
-% Ue0 = 0.1*ones(1,par.N) + 0.05*exp(-x.^2/4); % localized bump on uniform background
-% Ue0 = 0.1 + 0.01*cos(2*pi*4*x/par.Ldom); % single seeded wavenumber (k = 4)
-% Ui0 = Ue0; % same state in I as in E
+ %Ue0 = 0.1*ones(1,par.N) + 0.05*exp(-x.^2/4); % localized bump on uniform background
+%Ue0 = 0.1 + 0.01*sin(2*pi*x/par.Ldom); % single seeded wavenumber (k = 4)
+ %Ui0 = Ue0; % same state in I as in E
 
 [x,t,hist_e,hist_i] = run_flicker_1d(forcing_e, forcing_i, par, Ue0, Ui0);
 

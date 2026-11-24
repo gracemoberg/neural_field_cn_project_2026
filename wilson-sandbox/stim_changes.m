@@ -7,8 +7,8 @@ par.tEnd = 6000; % final time
 t_plot = 5500; % set portion of run to plot
 
 % forcing parameters
-A = 0.5; % forcing amplitude
-T = 80; % forcing function period, typically testin 60 or 125
+A = 0.8; % forcing amplitude
+T = 125; % forcing function period, typically testin 60 or 125
 q = 0; % feed-forward inhibition fraction (g_i = q*A in the paper)
 
 H = @(y) double(y>0); % step function
@@ -16,14 +16,16 @@ H = @(y) double(y>0); % step function
 % can define different forcing functions
 % each returns the drive at time t (scalar or 1xN)
 % paper's S(t) = A*H(sin(2*pi*t/T)-0.8)
-S0 = @(t) A*H(sin(2*pi*t/T) - 0.8);
+%S0 = @(t) A*H(sin(2*pi*t/T) - 0.8);
 % just altering the amount of the period is stimulus shown vs. not
-%S0 = @(t) A*H(sin(2*pi*t/T)-0.95);
+%S0 = @(t) A*H(sin(2*pi*t/T)-0.25);
 % taking that to a higher extreme:
-%S0 = @(t) A*H(exp(sin(2*pi*t/T))-0.4); % weird thing with T = 35, K = 0.4
+%S0 = @(t) A*H(exp(sin(2*pi*t/T))-1.5); % weird thing with T = 35, K = 0.4
 % getting rid of the constant relationship between on/off time
-%S0 = @(t) A*H(exp(-t/10)*sin(pi*t/T)); % basically negates influence of the
-%pattern/results in very little change across time, spatially homogeneous
+S0 = @(t) A*H(sin((2*pi*t^(1.25))/T)); % changing period over time
+%S0 = @(t) A*H(sin(2*pi*t/(T^(log(t)))));
+%S0 = @(t) A;
+%S0 = @(t) sin(2*pi*t/T);
 
 
 % forcing handles take (t,x) so spatial forcing is possible
